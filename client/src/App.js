@@ -49,10 +49,10 @@ const App = () => {
 				<div className="body">
 					<Switch>
 						<Route exact path="/Mentors">
-							<Mentors questions={questions} quizes={quizzes} />
+							<Mentors questions={questions} quizzes={quizzes} />
 						</Route>
 						<Route exact path="/Results">
-							<Results questions={questions} quizes={quizzes} />
+							<Results questions={questions} quizzes={quizzes} />
 						</Route>
 						<Route exact path="/Students">
 							{quizzes.length > 0 ? (
