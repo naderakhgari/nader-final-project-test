@@ -1,90 +1,52 @@
-import React, { useEffect, useState } from "react";
-import { BrowserRouter as Router, Switch, Route, Link } from "react-router-dom";
-// import "./App.css";
-// import "./grid.css";
-// import Students from "./Components/Students.js";
-import Mentors from "./Mentors.js";
-import NewQuestion from "./NewQuestion.js";
-import Results from "./Results.js";
-
-const App = () => {
-	const [questions, setQuestions] = useState(null);
-	const [quizzes, setQuizzes] = useState([]);
-	const [route, setRoute] = useState("");
-	const [quizId, setQuizId] = useState("");
-	const [code, setCode] = useState("");
+import React, { useState, useEffect } from "react";
+import Questions from "./Questions";
+import Message from "./Message.js";
+const Students = (props) => {
+	const [enteredCode, setEnteredCode] = useState("");
+	const [textMessage, setTextMessage] = useState("");
+	const [quizData, setQuizData] = useState([]);
+	const [isSubmitted, setIsSubmitted] = useState(false);
+	const [optionState, setOptionState] = useState(false);
 
 	useEffect(() => {
-		fetch("/api/questions")
+		fetch(`/api/${props.route}`)
 			.then((res) => res.json())
-			.then((data) => setQuestions(data))
+			.then((data) => setQuizData(data))
 			.catch((err) => console.error(err));
-		fetch("/api/quizzes")
-			.then((res) => res.json())
-			.then((data) => setQuizzes(data))
-			.catch((err) => console.error(err));
-	}, []);
+	}, [props.route]);
+
+	const changeHandler = (event) => {
+		setEnteredCode(event.target.value);
+	};
 
 	return (
-		<main role="main">
-			<Router>
-				<nav className="navbar">
-					<Link to="/" exact="true">
-						<img
-							src="https://codeyourfuture.io/wp-content/uploads/2019/03/cyf_brand.png"
-							alt="cyf_brand.png"
-							className="cyf-log"
-						/>
-					</Link>
-					<Link to="/Students" exact="true" className="link-button">
-            Student
-					</Link>
-					<Link to="/Mentors" exact="true" className="link-button">
-            Mentor
-					</Link>
-					<Link to="/Results" exact="true" className="link-button">
-            Quiz rezults
-					</Link>
-					<Link to="/NewQuestion" exact="true" className="link-button">
-            New question
-					</Link>
-				</nav>
-				<div className="body">
-					<Switch>
-						<Route exact path="/Mentors">
-							<Mentors
-								questions={questions}
-								quizzes={quizzes}
-								setRoute={setRoute}
-								setQuizId={setQuizId}
-								setCode={setCode}
-								code={code}
-							/>
-						</Route>
-						<Route exact path="/Results">
-							<Results questions={questions} quizes={quizzes} />
-						</Route>
-						<Route exact path="/Students">
-							{quizzes.length > 0 ? (
-								<Students
-									quizData={quizzes}
-									route={route}
-									code={code}
-									setCode={setCode}
-									quizId={quizId}
-								/>
-							) : (
-								<p>There is no quiz to show</p>
-							)}
-						</Route>
-						<Route exact path="/NewQuestion">
-							<NewQuestion />
-						</Route>
-					</Switch>
-				</div>
-			</Router>
-		</main>
+		<div className="container">
+			{isSubmitted ? (
+				<Message
+					setIsSubmitted={setIsSubmitted}
+					textMessage={textMessage}
+					setOptionState={setOptionState}
+					setCode={props.setCode}
+				/>
+			) : null}
+			<div className="centered">
+				<input
+					type="text"
+					onChange={changeHandler}
+					placeholder="Enter the code"
+					className="input"
+					autoFocus
+				/></div>
+
+			{props.quizData.find((quiz) => quiz.code === enteredCode) && !optionState ? (
+				<Questions
+					quizData={props.quizData.find((quiz) => quiz.code === enteredCode)}
+					quizId={props.quizId}
+					setIsSubmitted={setIsSubmitted}
+					setTextMessage={setTextMessage}
+				/>
+			) : null}
+		</div>
 	);
 };
-
-export default App;
+export default Students;

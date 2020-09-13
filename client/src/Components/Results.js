@@ -1,23 +1,15 @@
 import React, { useState, useEffect } from "react";
-import { Table } from "reactstrap";
 
 export default function Results(props) {
+
 	const [quizQuestions, setQuizQuestions] = useState([]);
 	const [students, setStudents] = useState([]);
-
-	// const [resultRoute, setResultRoute] = useState("");
-	const [resultRoute, setResultRoute] = useState("");
 	const [quizRoute, setQuizRoute] = useState("");
 	const [allResults, setAllResults] = useState(null);
 	const [quizSelected, setQuizSelected] = useState({});
 	const [quizSelectedResult, setQuizSelectedResult] = useState([]);
-	const [attempt, setAttempt] = useState(0);
-
-	console.log(quizSelected);
-	console.log(allResults);
-	console.log(quizSelectedResult);
-	console.log(quizQuestions);
-	console.log(students);
+	const [attemptNumber, setAttemptNumber] = useState(1);
+	const [attemptCounter, setAttemptCounter] = useState(1);
 
 	useEffect(() => {
 		fetch("/api/results")
@@ -41,6 +33,9 @@ export default function Results(props) {
 	}
 
 	const changeHandler = (event) => {
+		setAttemptNumber(1);
+		setAttemptCounter(1);
+		setStudents([]);
 		setQuizRoute(`quizzes/${event.target.value}`);
 		const selectedResult = allResults.filter(
 			(result) => result.quiz_id === event.target.value
@@ -59,37 +54,81 @@ export default function Results(props) {
 		}
 	};
 
-
-
-	const getValues = (student, id)=>{
-		const allatemmpt = quizSelectedResult
-			.filter(
-				(quizResult) =>
-					quizResult.studentName === student
-			);
-		const lastAtemmpt = allatemmpt.splice((allatemmpt.length>quizQuestions.length ? allatemmpt.length -quizQuestions.length:0),quizQuestions.length);
-		const finalResult = lastAtemmpt.find((attempt) => attempt.question_id === id);
-		if(finalResult) {
-			return (
-				<td key={finalResult._id} className={colorState(finalResult.correct)}>{finalResult.value}</td>//{result.timestamp}
-			);
-		}else{
-			<td className="unknown"></td>;//{result.timestamp}
+	const getLastAttempt = (student) => {
+		const questionId = quizQuestions.length > 0 ? quizQuestions[0]._id : null;
+		const allAttempts = quizSelectedResult.filter(
+			(quizResult) =>
+				quizResult.studentName === student
+        && quizResult.question_id === questionId
+		);
+		if (allAttempts.length >= attemptNumber) {
+			return allAttempts[allAttempts.length - attemptNumber].timestamp;
+		} else {
+			return null;
 		}
 	};
 
-	const colorState = (correct)=>{
-		if(correct){
-			return("corect");
-		}else{
-			return("incorect");
+	const getValues = (student, questionId) => {
+		const allAttempts = quizSelectedResult.filter(
+			(quizResult) =>
+				quizResult.studentName === student
+        && quizResult.question_id === questionId
+		);
+		if (allAttempts.length > 0) {
+			allAttempts.length>attemptCounter?setAttemptCounter(allAttempts.length):null;
+			let timestamp = getLastAttempt(student);
+			if (!timestamp) {
+				return null;
+			} else {
+				const finalResult = allAttempts.find((attempt) => {
+					return attempt.timestamp >= timestamp;
+				});
+
+				if (finalResult && finalResult.value) {
+					return (
+						<td
+							key={finalResult._id}
+							className={colorState(finalResult.correct)}
+						>
+							{finalResult.value}
+						</td>
+					);
+				} else {
+					return (
+						<td key={Math.floor(Math.random(0) * 100000)} className="unknown">
+              No Answer
+						</td>
+					);
+				}
+			}
+		} else {
+			return (
+				<td key={Math.floor(Math.random(0) * 100000)} className="unknown">
+          No Answer
+				</td>
+			);
 		}
+	};
+
+	const colorState = (correct) => {
+		if (correct) {
+			return "corect";
+		} else {
+			return "incorect";
+		}
+	};
+
+	const previousAttempt = () => {
+		setAttemptNumber(attemptNumber + 1);
+	};
+
+	const nextAttempt = () => {
+		setAttemptNumber(attemptNumber - 1);
 	};
 
 	return (
-		<div>
+		<div className="container">
 			<div>
-				<h1> no results for this quiz have been submitted yet</h1>
 				<div className="col-12">
 					<h1>Welcome to QuizzTime</h1>
 					<select className="input select-input" onChange={changeHandler}>
@@ -106,238 +145,51 @@ export default function Results(props) {
 			</div>
 			<div>
 				{quizSelected._id ? (
-					<table>
-						<thead>
-							<tr>
-								<th></th>
-								{quizQuestions.length > 0
-									? quizQuestions.map((question) => {
-										return <th key={question._id}>{question.question}</th>;
-									})
-									: null}
-							</tr>
-						</thead>
-						<tbody>
-							{students.map((student, index) => {
-								return (
-									<tr key={index}>
-										<th>{student}</th>
-										{quizQuestions.map((question) => getValues(student,question._id))}
-
-									</tr>
-								);
-							})}
-						</tbody>
-					</table>
-				) : null}
+					<div>
+						{students.length > 0 ? (
+							<div className="results-container">
+								<div className="quiz-handler">
+									<button className="quiz-button card-button" onClick={previousAttempt} disabled={attemptNumber >= attemptCounter}>Previous Attempt</button>
+									<button className="quiz-button card-button" onClick={nextAttempt} disabled={attemptNumber <= 1}>
+                    Next Attempt
+									</button>
+									<span>All Attempt : {attemptCounter}</span>
+								</div>
+								<table>
+									<thead>
+										<tr>
+											<th></th>
+											{quizQuestions.length > 0
+												? quizQuestions.map((question) => {
+													return (
+														<th key={question._id}>{question.question}</th>
+													);
+												})
+												: null}
+										</tr>
+									</thead>
+									<tbody>
+										{students.map((student, index) => {
+											return (
+												<tr key={index}>
+													<th>{student}</th>
+													{quizQuestions.map((question) =>
+														getValues(student, question._id)
+													)}
+												</tr>
+											);
+										})}
+									</tbody>
+								</table>
+							</div>
+						) : (
+							<h4>Nobody answered this quiz!</h4>
+						)}
+					</div>
+				) : (
+					<p>please select a quiz to see the result</p>
+				)}
 			</div>
 		</div>
 	);
-
-	// const increaseAttemptNumber = () => setAttemptNumber(attemptNumber + 1);
-	// const decreaseAttemptNumber = () => {
-	// 	if (attemptNumber > 0) {
-	// 		setAttemptNumber(attemptNumber - 1);
-	// 	} else {
-	// 		alert("can't increase");
-	// 	}
-	// };
-
-	// // const findQuestionResult = (questionId, studentName) => {
-	// // 	let resultsforThisQuestion = allResults.filter(
-	// // 		(result) => result.question_id === questionId
-	// // 	);
-	// // 	let studentsAttemptsOnQuestion = resultsforThisQuestion.filter(
-	// // 		(result) => result.studentName === studentName
-	// // 	);
-	// // 	if (studentsAttemptsOnQuestion.length === 0) {
-	// // 		return "unknown";
-	// // 	}
-	// // 	if (studentsAttemptsOnQuestion[attemptNumber] === undefined) {
-	// // 		return "unknown";
-	// // 	}
-	// // 	if (
-	// // 		studentsAttemptsOnQuestion !== undefined
-	// //   && studentsAttemptsOnQuestion[attemptNumber].correct
-	// // 	) {
-	// // 		return "corect";
-	// // 	} else {
-	// // 		return "incorect";
-	// // 	}
-	// // };
-	// const [resultStat, setResultState]=useState("");
-
-	// // const findStudenAnswerResult = (questionId, studentName) => {
-	// // 	let studentAnsweredId = allResults.filter(
-	// // 		(result) => result.question_id === questionId
-	// // 	);
-	// // 	let studentAnsweredQuestion = studentAnsweredId.filter(
-	// // 		(el) => el.studentName === studentName
-	// // 	);
-	// // 	if (studentAnsweredQuestion.length === 0) {
-	// // 		return "unknown";
-	// // 	}
-	// // 	if (
-	// // 		studentAnsweredQuestion !== undefined
-	// //   && studentAnsweredQuestion[attemptNumber]
-	// // 	) {
-	// // 		return studentAnsweredQuestion[attemptNumber].value;
-	// // 	}
-	// // };
-
-	// const [resultValue, setResultValue]=useState("");
-
-	// useEffect(() => {
-	// 	fetchResults();
-	// }, [quizRoute]);
-
-	// useEffect(() => {
-	// 	if (quizSelected !== null) {
-	// 		const makeQuestions = () => {
-	// 			let selectedQuizQuestions = [];
-	// 			selectedQuizQuestions = quizSelected.questions_id.filter((selId) => result.studentName === student).map{
-	// 				let found = props.questions.find((question) => question._id == selId);
-	// 				selectedQuizQuestions.push(found);
-	// 				setSelectedQuizQuestions(selectedQuizQuestions);
-	// 			});
-	// 		};
-	// 		makeQuestions();
-	// 	}
-	// }, [quizSelected]);
-	// const makeNames = () => {
-	// 	let tempNames = [];
-	// 	if (allResults !== "not found!") {
-	// 		allResults.map((oneAnswer) => {
-	// 			if (studentNames && !tempNames.includes(oneAnswer.studentName)) {
-	// 				tempNames.push(oneAnswer.studentName);
-	// 			}
-	// 		});
-	// 		setStudentNames(tempNames);
-	// 	}
-	// };
-	// useEffect(() => {
-	// 	if (allResults) {
-	// 		makeNames();
-	// 	}
-	// }, [allResults]);
-
-	// const quizToSeeResultsChosen = (e) => {
-	// 	setQuizRoute(e.target.value);
-	// 	const selectedQuiz = props.quizzes.find(
-	// 		(quiz) => quiz._id == e.target.value
-	// 	);
-	// 	setSelectedQuizQuestions([]);
-	// 	setQuizSelected(selectedQuiz);
-	// };
-	// if (allResults == "not found!") {
-	// 	return (
-	// 		<div className="col-12 centered">
-	// 			<h1> no results for this quiz have been submitted yet</h1>
-	// 			<div className="col-12">
-	// 				<h1>Welcome to QuizzTime</h1>
-	// 				<select
-	// 					name="quizez"
-	// 					className="quizez"
-	// 					onChange={quizToSeeResultsChosen}
-	// 				>
-	// 					<option>select a quiz</option>
-	// 					{props.quizzes.map((quiz) => {
-	// 						return <option key={quiz._id} value={quiz._id}>{quiz.name}</option>;
-	// 					})}
-	// 				</select>
-	// 			</div>
-	// 		</div>
-	// 	);
-	// } else if (props.quizzes) {
-	// 	return (
-	// 		<div className="col-12 centered">
-	// 			<h1>Chosse a quizz to see student results</h1>
-	// 			<select
-	// 				name="quizzez"
-	// 				className="quizzez"
-	// 				onChange={quizToSeeResultsChosen}
-	// 			>
-	// 				<option value="" disabled selected hidden>
-	//         select a quiz
-	// 				</option>
-	// 				{props.quizzes.map((quiz) => {
-	// 					return <option key={quiz._id} value={quiz._id}>{quiz.name}</option>;
-	// 				})}
-	// 			</select>
-
-	// 			{quizSelected && allResults && allResults !== "not found!" ? (
-	// 				<div className="col-12">
-	// 					<div className="result-handler col-12">
-	// 						<div >
-	// 							<h3>attempt number {attemptNumber + 1} </h3>
-	// 							<p>(change to see if some students made multiple attempts)</p>
-	// 						</div>
-	// 						<div className="col-6 attempt-buttons">
-	// 							<button onClick={decreaseAttemptNumber} className="quiz-button">decrease attempt number{" "}
-	// 							</button>
-	// 							<button onClick={increaseAttemptNumber} className="quiz-button">increase attempt number{" "}
-	// 							</button>
-	// 						</div>
-	// 					</div>
-	// 					<table>
-	// 						<thead>
-	// 							<tr>
-	// 								<td></td>
-	// 								{selectedQuizQuestions ? (
-	// 									selectedQuizQuestions.map((question, index) => {
-	// 										return (
-	// 											<th key={index} className="col-2">
-	// 												{question !== undefined ? (
-	// 													<p>{question.question}</p>
-	// 												) : (
-	// 													<p>Loading question</p>
-	// 												)}
-	// 											</th>
-	// 										);
-	// 									})
-	// 								) : (
-	// 									<tr></tr>
-	// 								)}
-	// 							</tr>
-	// 							{studentNames && quizSelected
-	// 								? studentNames.filter(Boolean).map((oneName, index) => {
-	// 									return (
-	// 										<tr key={index}>
-	// 											<td>{oneName}</td>
-	// 											{selectedQuizQuestions
-	// 												? selectedQuizQuestions.map((question) => {
-	// 													return (
-	// 														<th key={question._id}
-	// 															className={findQuestionResult(
-	// 																question._id,
-	// 																oneName
-	// 															)}
-	// 														>
-	// 															{question !== undefined ? (
-	// 																<p>
-	// 																	{findStudenAnswerResult(
-	// 																		question._id,
-	// 																		oneName
-	// 																	)}
-	// 																</p>
-	// 															) : (
-	// 																<p>Loading question</p>
-	// 															)}
-	// 														</th>
-	// 													);
-	// 												})
-	// 												: null}
-	// 										</tr>
-	// 									);
-	// 								})
-	// 								: null}
-	// 						</thead>
-	// 					</table>
-	// 				</div>
-	// 			) : null}
-	// 		</div>
-	// 	);
-	// } else {
-	// 	return <div>no props</div>;
-	// }
 }
