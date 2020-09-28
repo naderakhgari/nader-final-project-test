@@ -2,12 +2,16 @@ import React, { useState, useEffect } from "react";
 import { Button, Form, FormGroup, Label, Input } from "reactstrap";
 import dayjs from "dayjs";
 import ReactMarkdown from "react-markdown";
+import Modal from "../Modal/Modal";
 const Questions = (props) => {
+
 	const [currentQuestionIndex, setCurrentQuestionIndex] = useState(0);
 	const [isChecked, setIsChecked] = useState(false);
 	const [radioId, setRadioId] = useState("");
 	const [route, setRoute] = useState("");
 	const [postData, setPostData] = useState({});
+	const [modalText, setModalText]=useState(null);
+	const [submittedModalText,setSubmittedModalText]=useState(null);
 	const [questionData, setQuestionData] = useState({});
 	const [requestOption, setRequestOption] = useState({ method: "GET" });
 	const [answer, setAnswer] = useState({
@@ -18,7 +22,7 @@ const Questions = (props) => {
 		timestamp: dayjs().format(),
 		studentName: "",
 	});
-	console.log(props.quizData);
+
 	useEffect(() => {
 		fetch(`/api/question/${props.quizData.questions_id[currentQuestionIndex]}`)
 			.then((res) => res.json())
@@ -30,7 +34,7 @@ const Questions = (props) => {
 			.catch((err) => console.error(err));
 	}, [props.quizData.questions_id[currentQuestionIndex], route, requestOption]);
 
-	const submitHandler = (e) => {
+	const submitionProcess =()=>{
 		setCurrentQuestionIndex(currentQuestionIndex + 1);
 		setRoute("results");
 		setRequestOption({
@@ -38,8 +42,6 @@ const Questions = (props) => {
 			headers: { "Content-type": "application/json" },
 			body: JSON.stringify(answer),
 		});
-		e.preventDefault();
-		e.target.reset;
 		setAnswer({
 			...answer,
 			question_id: props.quizData.questions_id[currentQuestionIndex + 1],
@@ -49,7 +51,16 @@ const Questions = (props) => {
 		});
 		setIsChecked(false);
 	};
+	const submitHandler = (e) => {
+		e.preventDefault();
 
+		if(answer.value=="") {
+			setModalText("Are you sure you want to skip this question?");
+
+		}else{
+			submitionProcess();
+		}
+	};
 	const submitForm = (event) => {
 		setRoute("results");
 		setRequestOption({
@@ -58,10 +69,11 @@ const Questions = (props) => {
 			body: JSON.stringify(answer),
 		});
 		event.target.reset;
-		props.setIsSubmitted(true);
-		props.setTextMessage("Form submitted successfully!");
+		setSubmittedModalText("Form submitted successfully");
 	};
-
+	const refreshPage=()=>{
+		location.reload();
+	};
 	const checkHandler = (e) => {
 		setAnswer({
 			...answer,
@@ -73,7 +85,7 @@ const Questions = (props) => {
 	};
 
 	if (!questionData.answers) {
-		return <p>There is no question to show</p>;
+		return <p className="centered">There is no question to show</p>;
 	}
 	let {
 		answer_a,
@@ -91,113 +103,121 @@ const Questions = (props) => {
 	};
 
 	return (
-		<Form onSubmit={submitHandler} className="survey-form">
-			<input
-				type="text"
-				placeholder="Enter your name"
-				onChange={changeHandler}
-				className="answers"
-				required
-				autoFocus
-			/>
-			<FormGroup>
-				<FormGroup className="answers">
-					{questionData.question_code ? (
-						<ReactMarkdown className="code">
-							{questionData.question_code}
-						</ReactMarkdown>
-					) : null}
-					<ReactMarkdown>{questionData.question}</ReactMarkdown>
-				</FormGroup>
-				<FormGroup className="answers">
-					{answer_a ? (
+		<div>
+			<Form  className="survey-form"  onSubmit={submitHandler}>
+
+				<FormGroup >
+					<FormGroup className="answers">
+						{currentQuestionIndex==0?<input
+							type="text"
+							placeholder="Enter your name"
+							onChange={changeHandler}
+							className="input"
+							required
+							autoFocus
+						/>:null}
+						{questionData.question_code ? (
+							<ReactMarkdown className="code">
+								{questionData.question_code}
+							</ReactMarkdown>
+						) : null}
+						<ReactMarkdown>{questionData.question}</ReactMarkdown>
+					</FormGroup>
+
+					{answer_a ? (<FormGroup className="answers">
 						<Input
 							type="radio"
 							name="answer"
 							value={answer_a}
-							onClick={checkHandler}
+							onChange={checkHandler}
 							id="answer_a"
 							checked={isChecked && radioId == "answer_a" ? true : false}
 						/>
-					) : null}
-					{answer_a ? <Label for="answer_a">{answer_a}</Label> : null}
-				</FormGroup>
+						 <Label for="answer_a">{answer_a}</Label></FormGroup>) : null}
 
-				<FormGroup className="answers">
-					{answer_b ? (
-						<Input
-							type="radio"
-							name="answer"
-							value={answer_b}
-							onClick={checkHandler}
-							id="answer_b"
-							checked={isChecked && radioId == "answer_b" ? true : false}
-						/>
-					) : null}
-					{answer_b ? <Label for="answer_b">{answer_b}</Label> : null}
+
+					<FormGroup className="answers">
+						{answer_b ? (
+							<Input
+								type="radio"
+								name="answer"
+								value={answer_b}
+								onChange={checkHandler}
+								id="answer_b"
+								checked={isChecked && radioId == "answer_b" ? true : false}
+							/>
+						) : null}
+						{answer_b ? <Label for="answer_b">{answer_b}</Label> : null}
+					</FormGroup>
+					<FormGroup className="answers">
+						{answer_c ? (
+							<Input
+								type="radio"
+								name="answer"
+								value={answer_c}
+								onChange={checkHandler}
+								id="answer_c"
+								checked={isChecked && radioId == "answer_c" ? true : false}
+							/>
+						) : null}
+						{answer_c ? <Label for="answer_c">{answer_c}</Label> : null}
+					</FormGroup>
+					<FormGroup className="answers">
+						{answer_d ? (
+							<Input
+								type="radio"
+								name="answer"
+								value={answer_d}
+								onChange={checkHandler}
+								id="answer_d"
+								checked={isChecked && radioId == "answer_d" ? true : false}
+							/>
+						) : null}
+						{answer_d ? <Label for="answer_d">{answer_d}</Label> : null}
+					</FormGroup>
+					<FormGroup className="answers">
+						{answer_e ? (
+							<Input
+								type="radio"
+								name="answer"
+								value={answer_e}
+								onChange={checkHandler}
+								id="answer_e"
+								checked={isChecked && radioId == "answer_e" ? true : false}
+							/>
+						) : null}
+						{answer_e ? <Label for="answer_e">{answer_e}</Label> : null}
+					</FormGroup>
+					<FormGroup className="answers">
+						{answer_f ? (
+							<Input
+								type="radio"
+								name="answer"
+								value={answer_f}
+								onClick={checkHandler}
+								id="answer_f"
+								checked={isChecked && radioId == "answer_f" ? true : false}
+							/>
+						) : null}
+						{answer_f ? <Label for="answer_f">{answer_f}</Label> : null}
+					</FormGroup>
+					<hr style={{ margin: "40px 0" }} />
 				</FormGroup>
-				<FormGroup className="answers">
-					{answer_c ? (
-						<Input
-							type="radio"
-							name="answer"
-							value={answer_c}
-							onClick={checkHandler}
-							id="answer_c"
-							checked={isChecked && radioId == "answer_c" ? true : false}
-						/>
-					) : null}
-					{answer_c ? <Label for="answer_c">{answer_c}</Label> : null}
-				</FormGroup>
-				<FormGroup className="answers">
-					{answer_d ? (
-						<Input
-							type="radio"
-							name="answer"
-							value={answer_d}
-							onClick={checkHandler}
-							id="answer_d"
-							checked={isChecked && radioId == "answer_d" ? true : false}
-						/>
-					) : null}
-					{answer_d ? <Label for="answer_d">{answer_d}</Label> : null}
-				</FormGroup>
-				<FormGroup className="answers">
-					{answer_e ? (
-						<Input
-							type="radio"
-							name="answer"
-							value={answer_e}
-							onClick={checkHandler}
-							id="answer_e"
-							checked={isChecked && radioId == "answer_e" ? true : false}
-						/>
-					) : null}
-					{answer_e ? <Label for="answer_e">{answer_e}</Label> : null}
-				</FormGroup>
-				<FormGroup className="answers">
-					{answer_f ? (
-						<Input
-							type="radio"
-							name="answer"
-							value={answer_f}
-							onClick={checkHandler}
-							id="answer_f"
-							checked={isChecked && radioId == "answer_f" ? true : false}
-						/>
-					) : null}
-					{answer_f ? <Label for="answer_f">{answer_f}</Label> : null}
-				</FormGroup>
-				<hr style={{ margin: "40px 0" }} />
-			</FormGroup>
-			{currentQuestionIndex < props.quizData.questions_id.length - 1 ? (
-				<Button className="answers">Next</Button>
-			) : (
-				<Button type="button" onClick={submitForm} className="answers">
+				{currentQuestionIndex < props.quizData.questions_id.length - 1 ? (
+
+					<Button
+			 className="answers">
+			Next</Button>
+				) : (
+					<Button type="button"  className="answers" onClick={submitForm}>
           Submit
-				</Button>
-			)}
-		</Form>
+					</Button>
+				)}
+
+			</Form>
+			{modalText?<Modal modalText={modalText} setModalText={setModalText} func={submitionProcess} />:null}
+			{submittedModalText?<Modal modalText={submittedModalText} setModalText={setSubmittedModalText} func={refreshPage}  close={false} />:null}
+		</div>
 	);
 };
 
