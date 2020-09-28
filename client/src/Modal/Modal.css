@@ -1,0 +1,39 @@
+
+
+.modal{
+    position: fixed;
+    top:0;
+    right:0;
+    bottom:0;
+    left:0;
+    background: rgba(0,0,0, 0.5);
+    display:flex;
+    justify-content: center;
+    justify-items: center;
+    padding-top: 5rem;
+    z-index:2;
+}
+.modal-body{
+    display: flex;
+    flex-direction:column;
+    justify-content: space-around;
+    padding: 2rem;
+    width:10vw;
+    max-width: 500px;
+    border-radius:5px;
+    background: white;
+    height:25vh;
+
+}
+.modal-button{
+    align-self: flex-end;
+    margin:1rem;
+    justify-self: flex-end;
+}
+.buttonRow{
+    display:flex;
+    flex-direction: row;
+    justify-items:flex-end;
+    justify-content:flex-end;
+
+}

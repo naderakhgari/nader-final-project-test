@@ -1,32 +1,36 @@
 import React, { useEffect, useState } from "react";
 import dayjs from "dayjs";
-import { BrowserRouter as Route, Link } from "react-router-dom";
-import "../App.css";
-import "../grid.css";
+import Navbar from "./Navbar";
 import ReactMarkdown from "react-markdown";
 import RunQuiz from "./RunQuiz";
+import Modal from "../Modal/Modal";
+
 export default function Mentors(props) {
 	const [newQuizQuestions, setNewQuizQuestions] = useState([]);
-	const [numberOfQuestions,setNumberOfQuestions]=useState(5);
-	const [filteredQuestionsByTag, setFilteredQuestionsByTag]=useState(props.questions);
+	const [numberOfQuestions, setNumberOfQuestions] = useState(5);
+	const [filteredQuestionsByTag, setFilteredQuestionsByTag] = useState(
+		props.questions
+	);
 	const [tagsCollection, setTagsCollection] = useState([]);
+	const [modalText,setModalText]=useState(null);
+	const [submittedModalText, setSubmittedModalText]=useState(null);
 	const [newQuiz, setNewQuiz] = useState({
 		name: "",
 		publishingDate: "",
 		questions_id: [],
-		code:"",
+		code: "",
 	});
 	const clearQuiz = () => {
 		setNewQuiz({
 			name: "",
 			publishingDate: "",
 			questions_id: [],
-			code:"",
+			code: "",
 		});
 		setNewQuizQuestions([]);
+		QuizName.value="";
 	};
 	const autofillQuizz = () => {
-		clearQuiz();
 		const shuffled = filteredQuestionsByTag.sort(() => 0.5 - Math.random());
 		// Get sub-array of first n elements after shuffled
 		let selected = shuffled.slice(0, numberOfQuestions);
@@ -38,19 +42,24 @@ export default function Mentors(props) {
 		});
 	};
 	const resetFilters = () => {
+		tagSelect.value="";
 		setFilteredQuestionsByTag(props.questions);
 	};
 	let tempFilteredData = [];
 	const tagClickHandler = (e) => {
-		setFilteredQuestionsByTag(null);
-		props.questions.map((question) => {
-			if (question.tags.includes(e.target.value)) {
-				tempFilteredData = [...tempFilteredData, question];
-			} else {
-				null;
-			}
-		});
-		setFilteredQuestionsByTag(tempFilteredData);
+		if(e.target.value!==""){
+			setFilteredQuestionsByTag(null);
+			props.questions.map((question) => {
+				if (question.tags.includes(e.target.value)) {
+					tempFilteredData = [...tempFilteredData, question];
+				} else {
+					null;
+				}
+			} );
+			setFilteredQuestionsByTag(tempFilteredData);
+		}else{
+			setFilteredQuestionsByTag(props.questions);
+		}
 	};
 	const findTags = () => {
 		let tempTags = [];
@@ -67,54 +76,70 @@ export default function Mentors(props) {
 			});
 		}
 	};
+	const makeQuestions = () => {
+		let selectedQuestions = [];
+		selectedQuestions = newQuiz.questions_id.map((selectedId) => {
+			let found = props.questions.find(
+				(question) => question._id === selectedId
+			);
+			selectedQuestions.push(found);
+			setNewQuizQuestions(selectedQuestions);
+		});
+	};
 	useEffect(() => {
-		const makeQuestions = () => {
-			let selectedQuestions = [];
-			selectedQuestions = newQuiz.questions_id.map((selectedId) => {
-				let found = filteredQuestionsByTag.find(
-					(question) => question._id === selectedId
-				);
-				selectedQuestions.push(found);
-				setNewQuizQuestions(selectedQuestions);
-			});
-		};
+		makeQuestions();
+		findTags();
+	}, [newQuiz.questions_id, props.questions]);
+	useEffect(() => {
 		makeQuestions();
 		findTags();
 		setFilteredQuestionsByTag(props.questions);
-	}, [newQuiz.questions_id, props.questions, newQuiz]);
-
+	}, [ props.questions]);
 	const addQuestion = (event) => {
-		setNewQuiz({
-			...newQuiz,
-			questions_id: [...newQuiz.questions_id, event.target.value],
-		});
+		if (
+			newQuiz.questions_id.filter((id) => id === event.target.value).length
+      === 0
+		) {
+			setNewQuiz({
+				...newQuiz,
+				questions_id: [...newQuiz.questions_id, event.target.value],
+			});
+		} else {
+			setModalText("this question is already in the quiz");
+		}
 	};
 
 	const submitQuiz = () => {
 		if (newQuiz.name.length < 8) {
-			alert("Quiz name should have at least 8 sybols");
+			setModalText("Quiz name should have at least 8 characters");
 		} else if (newQuizQuestions.length < 5) {
-			alert("Quizz  should have at least 5 questions");
+			setModalText("Quiz  should have at least 5 questions");
 		} else {
 			sendQuiz();
 		}
 	};
 	const sendQuiz = () => {
-		alert("done");
 		fetch("/api/quiz", {
 			method: "POST",
 			headers: { "Content-type": "application/json" },
 			body: JSON.stringify(newQuiz),
 		})
-			.then((response) => response.json())
+			.then((response) => {
+				response.json();
+				setSubmittedModalText(response.statusText);
+			})
 			.catch((err) => console.error(err));
 	};
+
 	const newQuizName = (event) => {
 		setNewQuiz({
 			...newQuiz,
 			publishingDate: dayjs().format(),
 			name: event.target.value,
-			code:Math.random().toString(36).replace(/[^a-z0-9]+/g, "").substr(0, 4),
+			code: Math.random()
+				.toString(36)
+				.replace(/[^a-z0-9]+/g, "")
+				.substr(0, 4),
 		});
 	};
 	const removeQuestion = (event) => {
@@ -129,69 +154,60 @@ export default function Mentors(props) {
 			newQuizQuestions.filter((question) => question._id !== event.target.value)
 		);
 	};
-	const selectHandler=(event)=>{
+	const selectHandler = (event) => {
 		setNumberOfQuestions(event.target.value);
 	};
 	if (filteredQuestionsByTag) {
 		return (
-			<div className='main'>
-
-				<nav className="navbar">
-					<Link to="/" exact="true">
-						<img
-							src="https://codeyourfuture.io/wp-content/uploads/2019/03/cyf_brand.png"
-							alt="cyf_brand.png"
-							className="cyf-log"
-						/>
-					</Link>
-					<Link to="/Results" exact="true" className="link-button">
-            			Quiz Results
-					</Link>
-					<Link to="/NewQuestion" exact="true" className="link-button">
-            			New Question
-					</Link>
-				</nav><div className="container">
+			<div>
+				<Navbar
+					mentors="Mentors"
+					results="Results"
+					newquestion="New Question"
+				/>
+				<div className="container margin-body" >
 					<div className='row'>
-
-						<RunQuiz
-							quizzes={props.quizzes}
-							setRoute={props.setRoute}
-							setCode={props.setCode}
-							code={props.code}
-							setQuizId={props.setQuizId}
-							setData={props.setData}
-						/>
+						{submittedModalText?(submittedModalText==="OK"?<Modal modalText={"submitted successfully"} func={clearQuiz} close={false} setModalText={setSubmittedModalText} />:<Modal modalText={"something went wrong"} func={clearQuiz} />):null}
+						<RunQuiz quizzes={props.quizzes} />
 						<div className="filterButtons row">
-							<select  onChange={tagClickHandler}>
-								<option value="" disabled selected hidden>select tag filter</option>
-								{tagsCollection.map((tag, index) => {
-									return (
-										<option value={tag} name={tag} key={index} >{tag}</option>
-									);
-								})}
-							</select>
 							<div>
-					 <select onChange={selectHandler}>
-						 <option selected disabled>Number of question</option>
+					 <select className="btn btn-light dropdown-toggle pt-2" onChange={selectHandler}>
+						 <option>💬 Number of question</option>
 									<option value="5">5</option>
 									<option value="10">10</option>
 									<option value="15">15</option>
+									<option value="20">20</option>
 								</select>
 					 </div>
-							<button onClick={autofillQuizz}>autofill quiz</button>
-							<button onClick={resetFilters}>reset filters</button>
+							<select id="tagSelect"className="btn btn-light dropdown-toggle ml-2" onChange={tagClickHandler}>
+								<option default value="">🏷️ Select tag filter</option>
+								{tagsCollection.map((tag, index) => {
+									return (
+										<option value={tag} name={tag} key={index}>
+											{tag}
+										</option>
+									);
+								})}
+							</select>
+
+							<button className="btn btn-light ml-2" onClick={autofillQuizz}>
+							🔀 Autofill quiz
+							</button>
+							<button className="btn btn-light ml-2" onClick={resetFilters}>
+							❌ Reset filters
+							</button>
 						</div>
-
-						<div className="col-9 card-block">
+						{modalText?<Modal modalText={modalText} setModalText={setModalText} close={true}  />:null}
+						<div className="col-7 card-block">
 							{filteredQuestionsByTag.map((question, index) => (
-
-								<div className=" col-3 card" key={index}>
+								<div className=" col-12 card mb-2" key={index}>
 									<div className="question-and-code-containter">
 										{question.question_code ? (
 											<div>
 												<ReactMarkdown className="code">
 													{question.question_code}
-												</ReactMarkdown></div>
+												</ReactMarkdown>
+											</div>
 										) : null}
 										<div>
 											<ReactMarkdown className="question">
@@ -203,51 +219,59 @@ export default function Mentors(props) {
 										{Object.values(question.answers).map((value, index) => {
 											return (
 												<div key={index}>
-													<div className="col-12 answer">{value}</div>
+													<div className="col-12 answer">{value?value:null}</div>
 												</div>
 											);
 										})}
 									</div>
 									<button
-										className="quiz-button card-button"
+										className="card-button btn btn-primary btn-sm w-25"
 										id={question._id}
 										value={question._id}
 										onClick={addQuestion}
 									>
-
-                Add to Quiz
+                    Add to Quiz
 									</button>
 								</div>
-
 							))}
 						</div>
-						<div className="col-3 quizQuestions">
+						<div className="col-5 quiz-questions">
 							<div className="form-title">New quiz</div>
 							<div className="quiz-handler">
-								<button onClick={clearQuiz} className="quiz-button"> clear quiz</button>
 								<input
+									id="QuizName"
 									type="text"
 									onKeyUp={newQuizName}
 									placeholder={"Enter quiz name"}
 									className="input"
 								/>
-								<button onClick={submitQuiz} className="quiz-button">Submit</button>
+								<button onClick={clearQuiz} className="btn btn-primary ml-2">
+									{" "}
+                  Clear
+								</button>
+								<button onClick={submitQuiz} className="btn btn-primary ml-2">
+                  Submit
+								</button>
 							</div>
 							{newQuizQuestions.map((question) => (
-								<div className="col-12 card" key={question.question}>
+								<div className="col-12 card mb-2" key={question.question}>
 									<div className="question-and-code-containter">
 										{question.question_code ? (
 											<ReactMarkdown className="code">
 												{question.question_code}
 											</ReactMarkdown>
 										) : null}
-										<ReactMarkdown className="question">{question.question}</ReactMarkdown>
+										<ReactMarkdown className="question">
+											{question.question}
+										</ReactMarkdown>
 									</div>
 									<div className="answers">
 										{Object.entries(question.answers).map(([index, value]) => {
 											return (
 												<div key={index}>
-													<div className="col-6 answer">{value}</div>
+													<div className="answer">
+														{value ? value: null}
+													</div>
 												</div>
 											);
 										})}
@@ -259,14 +283,16 @@ export default function Mentors(props) {
 										id="horns"
 										value={question._id}
 										onClick={removeQuestion}
-										className="quiz-button card-button"
+										className=" card-button btn btn-danger mb-2 btn-sm w-25"
 									>
-                Delete
+                    Delete
 									</button>
 								</div>
 							))}
 						</div>
-					</div></div></div>
+					</div>
+				</div>
+			</div>
 		);
 	} else {
 		return <div>No questions loaded</div>;
