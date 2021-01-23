@@ -1,10 +1,12 @@
 import React, { useState } from "react";
+
 import "./Modal.css";
+
 export default function Mentors(props) {
 
 	const [isOpen,setIsOpen]=useState(true);
-	return(
-		<React.Fragment>
+    	return(
+    		<React.Fragment>
     			{isOpen && (<div className='modal'>
     				<div className='modal-body'>
     					<h4 className='modalText'>{props.modalText}</h4>

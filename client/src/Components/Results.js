@@ -2,7 +2,6 @@ import React, { useState, useEffect } from "react";
 import Navbar from "./Navbar";
 
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
-// import your icons
 import { faTimes } from "@fortawesome/free-solid-svg-icons";
 import ReactTooltip from "react-tooltip";
 
@@ -19,14 +18,16 @@ export default function Results(props) {
 	const [isShowDetails, setIsShowDetails] = useState(false);
 	const [sortBy, setSortBy] = useState(null);
 	const [isDescending, setIsDescending] = useState(false);
-	const [allStudents, setAllStudents]=useState([]);
+	const [allStudents, setAllStudents] = useState([]);
 
 	useEffect(() => {
 		fetch("/api/results")
 			.then((response) => response.json())
 			.then((data) => setAllResults(data))
 			.catch((err) => console.error(err));
+	}, []);
 
+	useEffect(() => {
 		fetch(`/api/${quizRoute}`)
 			.then((response) => response.json())
 			.then((data) => setQuizSelected(data))
@@ -36,21 +37,22 @@ export default function Results(props) {
 	//Remove the duplicated data from array
 	function uniqBy(array, key) {
 		let seen = {};
-		return array.filter(function (item) {
+		return array.filter((item) => {
 			let k = key(item);
 			return seen.hasOwnProperty(k) ? false : (seen[k] = true);
 		});
 	}
 
 	const changeHandler = (event) => {
+		const { value } = event.target
 		setAttemptNumber(1);
 		setAttemptCounter(1);
 		setStudents([]);
 		setAllStudents([]);
 		setIsShowDetails(false);
-		setQuizRoute(`quizzes/${event.target.value}`);
+		setQuizRoute(`quizzes/${value}`);
 		const selectedResults = allResults.filter(
-			(result) => result.quiz_id === event.target.value
+			(result) => result.quiz_id === value
 		);
 		setQuizSelectedResults(selectedResults);
 		const names = selectedResults.map((result) => result.studentName);
@@ -59,7 +61,7 @@ export default function Results(props) {
 			setStudents(uniqBy(names, JSON.stringify)); //remove duplicated names from array
 
 			const questionIds = props.quizzes.find(
-				(quiz) => quiz._id === event.target.value
+				(quiz) => quiz._id === value
 			).questions_id;
 			const questions = questionIds.map((questionId) => {
 				return props.questions.find((question) => question._id === questionId);
@@ -73,7 +75,7 @@ export default function Results(props) {
 		const allAttempts = quizSelectedResults.filter(
 			(quizResult) =>
 				quizResult.studentName === student
-        && quizResult.question_id === questionId
+				&& quizResult.question_id === questionId
 		);
 		if (allAttempts.length >= attemptNumber) {
 			return allAttempts[allAttempts.length - attemptNumber].timestamp;
@@ -89,7 +91,7 @@ export default function Results(props) {
 		const allAttempts = quizSelectedResults.filter(
 			(quizResult) =>
 				quizResult.studentName === student
-        && quizResult.question_id === questionId
+				&& quizResult.question_id === questionId
 		);
 		if (allAttempts.length > 0) {
 			let timestamp = getLastAttempt(student);
@@ -111,7 +113,7 @@ export default function Results(props) {
 				} else {
 					return (
 						<td key={Math.floor(Math.random(0) * 100000)} className="unknown">
-              No Answer
+							No Answer
 						</td>
 					);
 				}
@@ -119,7 +121,7 @@ export default function Results(props) {
 		} else {
 			return (
 				<td key={Math.floor(Math.random(0) * 100000)} className="unknown">
-          No Answer
+					No Answer
 				</td>
 			);
 		}
@@ -158,7 +160,7 @@ export default function Results(props) {
 		const allAttempts = quizSelectedResults.filter(
 			(quizResult) =>
 				quizResult.studentName === student
-        && quizResult.question_id === questionId
+				&& quizResult.question_id === questionId
 		);
 		if (allAttempts.length <= 0) {
 			return 0;
@@ -195,6 +197,7 @@ export default function Results(props) {
 		setIsShowDetails(false);
 		setStudentSelected([]);
 	};
+
 	useEffect(() => {
 		const sortHandler = () => {
 			setStudents((s) => [].concat(s.sort()));
@@ -263,7 +266,7 @@ export default function Results(props) {
 									<div className="attempt-handler col-12">
 										<div className="current-attempt-handler">
 											<span>
-                        Current Attempt:{" "}
+												Current Attempt:{" "}
 												<strong>{attemptCounter - attemptNumber + 1}</strong>
 											</span>
 										</div>
@@ -274,7 +277,7 @@ export default function Results(props) {
 												disabled={attemptNumber >= attemptCounter}
 												style={{ marginLeft: "10px" }}
 											>
-                        Previous Attempt
+												Previous Attempt
 											</button>
 											<button
 												className="btn btn-primary btn-sm w-20"
@@ -282,7 +285,7 @@ export default function Results(props) {
 												disabled={attemptNumber <= 1}
 												style={{ marginLeft: "10px" }}
 											>
-                        Next Attempt
+												Next Attempt
 											</button>
 										</div>
 									</div>
@@ -299,10 +302,10 @@ export default function Results(props) {
 									<div className="col-12 tables-container">
 										<div className="col-4 scroll-table">
 											<ReactTooltip id="sortByScore" place="top" effect="solid">
-                        Sort the result by score
+												Sort the result by score
 											</ReactTooltip>
 											<ReactTooltip id="sortByName" place="top" effect="solid">
-                        Sort the result by Name
+												Sort the result by Name
 											</ReactTooltip>
 											<table className="table-score">
 												<thead className="table-head">
@@ -314,7 +317,7 @@ export default function Results(props) {
 															data-tip
 															data-for="sortByName"
 														>
-                              Name
+															Name
 														</th>
 														<th
 															className="no-border"
@@ -323,7 +326,7 @@ export default function Results(props) {
 															data-tip
 															data-for="sortByScore"
 														>
-                              Score
+															Score
 														</th>
 													</tr>
 												</thead>
@@ -390,14 +393,14 @@ export default function Results(props) {
 									</div>
 								</div>
 							) : (
-								<h4 className="info-align">Nobody answered this quiz!</h4>
-							)}
+									<h4 className="info-align">Nobody answered this quiz!</h4>
+								)}
 						</div>
 					) : (
-						<h4 className="info-align">
-              Please select a quiz to see the results
-						</h4>
-					)}
+							<h4 className="info-align">
+								Please select a quiz to see the results
+							</h4>
+						)}
 				</div>
 			</div>
 		</div>

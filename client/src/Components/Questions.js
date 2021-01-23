@@ -10,8 +10,8 @@ const Questions = (props) => {
 	const [radioId, setRadioId] = useState("");
 	const [route, setRoute] = useState("");
 	const [postData, setPostData] = useState({});
-	const [modalText, setModalText]=useState(null);
-	const [submittedModalText,setSubmittedModalText]=useState(null);
+	const [modalText, setModalText] = useState(null);
+	const [submittedModalText, setSubmittedModalText] = useState(null);
 	const [questionData, setQuestionData] = useState({});
 	const [requestOption, setRequestOption] = useState({ method: "GET" });
 	const [answer, setAnswer] = useState({
@@ -33,8 +33,7 @@ const Questions = (props) => {
 			.then((data) => setPostData(data))
 			.catch((err) => console.error(err));
 	}, [props.quizData.questions_id[currentQuestionIndex], route, requestOption]);
-
-	const submitionProcess =()=>{
+	const submitionProcess = () => {
 		setCurrentQuestionIndex(currentQuestionIndex + 1);
 		setRoute("results");
 		setRequestOption({
@@ -54,10 +53,10 @@ const Questions = (props) => {
 	const submitHandler = (e) => {
 		e.preventDefault();
 
-		if(answer.value=="") {
+		if (answer.value == "") {
 			setModalText("Are you sure you want to skip this question?");
 
-		}else{
+		} else {
 			submitionProcess();
 		}
 	};
@@ -71,7 +70,7 @@ const Questions = (props) => {
 		event.target.reset;
 		setSubmittedModalText("Form submitted successfully");
 	};
-	const refreshPage=()=>{
+	const refreshPage = () => {
 		location.reload();
 	};
 	const checkHandler = (e) => {
@@ -104,18 +103,18 @@ const Questions = (props) => {
 
 	return (
 		<div>
-			<Form  className="survey-form"  onSubmit={submitHandler}>
+			<Form className="survey-form" onSubmit={submitHandler}>
 
 				<FormGroup >
 					<FormGroup className="answers">
-						{currentQuestionIndex==0?<input
+						{currentQuestionIndex == 0 ? <input
 							type="text"
 							placeholder="Enter your name"
 							onChange={changeHandler}
 							className="input"
 							required
 							autoFocus
-						/>:null}
+						/> : null}
 						{questionData.question_code ? (
 							<ReactMarkdown className="code">
 								{questionData.question_code}
@@ -133,7 +132,7 @@ const Questions = (props) => {
 							id="answer_a"
 							checked={isChecked && radioId == "answer_a" ? true : false}
 						/>
-						 <Label for="answer_a">{answer_a}</Label></FormGroup>) : null}
+						<Label for="answer_a">{answer_a}</Label></FormGroup>) : null}
 
 
 					<FormGroup className="answers">
@@ -203,20 +202,25 @@ const Questions = (props) => {
 					</FormGroup>
 					<hr style={{ margin: "40px 0" }} />
 				</FormGroup>
-				{currentQuestionIndex < props.quizData.questions_id.length - 1 ? (
-
-					<Button
-			 className="answers">
-			Next</Button>
-				) : (
-					<Button type="button"  className="answers" onClick={submitForm}>
-          Submit
-					</Button>
-				)}
+				{currentQuestionIndex < props.quizData.questions_id.length - 1
+					? (
+						<Button
+							className="answers">
+							Next</Button>
+					)
+					: (
+						<Button type="button" className="answers" onClick={submitForm}>
+							Submit
+						</Button>
+					)}
 
 			</Form>
-			{modalText?<Modal modalText={modalText} setModalText={setModalText} func={submitionProcess} />:null}
-			{submittedModalText?<Modal modalText={submittedModalText} setModalText={setSubmittedModalText} func={refreshPage}  close={false} />:null}
+			{modalText
+				? <Modal modalText={modalText} setModalText={setModalText} func={submitionProcess} />
+				: null}
+			{submittedModalText
+				? <Modal modalText={submittedModalText} setModalText={setSubmittedModalText} func={refreshPage} close={false} />
+				: null}
 		</div>
 	);
 };

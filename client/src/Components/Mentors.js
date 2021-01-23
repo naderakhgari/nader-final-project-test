@@ -12,8 +12,8 @@ export default function Mentors(props) {
 		props.questions
 	);
 	const [tagsCollection, setTagsCollection] = useState([]);
-	const [modalText,setModalText]=useState(null);
-	const [submittedModalText, setSubmittedModalText]=useState(null);
+	const [modalText, setModalText] = useState(null);
+	const [submittedModalText, setSubmittedModalText] = useState(null);
 	const [newQuiz, setNewQuiz] = useState({
 		name: "",
 		publishingDate: "",
@@ -28,7 +28,7 @@ export default function Mentors(props) {
 			code: "",
 		});
 		setNewQuizQuestions([]);
-		QuizName.value="";
+		QuizName.value = "";
 	};
 	const autofillQuizz = () => {
 		const shuffled = filteredQuestionsByTag.sort(() => 0.5 - Math.random());
@@ -42,12 +42,12 @@ export default function Mentors(props) {
 		});
 	};
 	const resetFilters = () => {
-		tagSelect.value="";
+		tagSelect.value = "";
 		setFilteredQuestionsByTag(props.questions);
 	};
 	let tempFilteredData = [];
 	const tagClickHandler = (e) => {
-		if(e.target.value!==""){
+		if (e.target.value !== "") {
 			setFilteredQuestionsByTag(null);
 			props.questions.map((question) => {
 				if (question.tags.includes(e.target.value)) {
@@ -55,9 +55,9 @@ export default function Mentors(props) {
 				} else {
 					null;
 				}
-			} );
+			});
 			setFilteredQuestionsByTag(tempFilteredData);
-		}else{
+		} else {
 			setFilteredQuestionsByTag(props.questions);
 		}
 	};
@@ -94,11 +94,11 @@ export default function Mentors(props) {
 		makeQuestions();
 		findTags();
 		setFilteredQuestionsByTag(props.questions);
-	}, [ props.questions]);
+	}, [props.questions]);
 	const addQuestion = (event) => {
 		if (
 			newQuiz.questions_id.filter((id) => id === event.target.value).length
-      === 0
+			=== 0
 		) {
 			setNewQuiz({
 				...newQuiz,
@@ -167,19 +167,19 @@ export default function Mentors(props) {
 				/>
 				<div className="container margin-body" >
 					<div className='row'>
-						{submittedModalText?(submittedModalText==="OK"?<Modal modalText={"submitted successfully"} func={clearQuiz} close={false} setModalText={setSubmittedModalText} />:<Modal modalText={"something went wrong"} func={clearQuiz} />):null}
+						{submittedModalText ? (submittedModalText === "OK" ? <Modal modalText={"submitted successfully"} func={clearQuiz} close={false} setModalText={setSubmittedModalText} /> : <Modal modalText={"something went wrong"} func={clearQuiz} />) : null}
 						<RunQuiz quizzes={props.quizzes} />
 						<div className="filterButtons row">
 							<div>
-					 <select className="btn btn-light dropdown-toggle pt-2" onChange={selectHandler}>
-						 <option>💬 Number of question</option>
+								<select className="btn btn-light dropdown-toggle pt-2" onChange={selectHandler}>
+									<option>💬 Number of question</option>
 									<option value="5">5</option>
 									<option value="10">10</option>
 									<option value="15">15</option>
 									<option value="20">20</option>
 								</select>
-					 </div>
-							<select id="tagSelect"className="btn btn-light dropdown-toggle ml-2" onChange={tagClickHandler}>
+							</div>
+							<select id="tagSelect" className="btn btn-light dropdown-toggle ml-2" onChange={tagClickHandler}>
 								<option default value="">🏷️ Select tag filter</option>
 								{tagsCollection.map((tag, index) => {
 									return (
@@ -191,13 +191,13 @@ export default function Mentors(props) {
 							</select>
 
 							<button className="btn btn-light ml-2" onClick={autofillQuizz}>
-							🔀 Autofill quiz
+								🔀 Autofill quiz
 							</button>
 							<button className="btn btn-light ml-2" onClick={resetFilters}>
-							❌ Reset filters
+								❌ Reset filters
 							</button>
 						</div>
-						{modalText?<Modal modalText={modalText} setModalText={setModalText} close={true}  />:null}
+						{modalText ? <Modal modalText={modalText} setModalText={setModalText} close={true} /> : null}
 						<div className="col-7 card-block">
 							{filteredQuestionsByTag.map((question, index) => (
 								<div className=" col-12 card mb-2" key={index}>
@@ -219,7 +219,7 @@ export default function Mentors(props) {
 										{Object.values(question.answers).map((value, index) => {
 											return (
 												<div key={index}>
-													<div className="col-12 answer">{value?value:null}</div>
+													<div className="col-12 answer">{value ? value : null}</div>
 												</div>
 											);
 										})}
@@ -230,7 +230,7 @@ export default function Mentors(props) {
 										value={question._id}
 										onClick={addQuestion}
 									>
-                    Add to Quiz
+										Add to Quiz
 									</button>
 								</div>
 							))}
@@ -250,7 +250,7 @@ export default function Mentors(props) {
                   Clear
 								</button>
 								<button onClick={submitQuiz} className="btn btn-primary ml-2">
-                  Submit
+									Submit
 								</button>
 							</div>
 							{newQuizQuestions.map((question) => (
@@ -270,7 +270,7 @@ export default function Mentors(props) {
 											return (
 												<div key={index}>
 													<div className="answer">
-														{value ? value: null}
+														{value ? value : null}
 													</div>
 												</div>
 											);
@@ -285,7 +285,7 @@ export default function Mentors(props) {
 										onClick={removeQuestion}
 										className=" card-button btn btn-danger mb-2 btn-sm w-25"
 									>
-                    Delete
+										Delete
 									</button>
 								</div>
 							))}

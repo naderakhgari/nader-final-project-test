@@ -1,12 +1,11 @@
 import React, { useState } from "react";
 import Navbar from "./Navbar";
-import ReactMarkdown from "react-markdown";
-import { BrowserRouter as Route, Link } from "react-router-dom";
-import { Form, FormGroup } from "reactstrap";
+import { FormGroup } from "reactstrap";
 import Modal from "../Modal/Modal";
 export default function NewQuestion() {
-	const [modalText, setModalText]=useState(null);
-	const [noAnswerModalText,setNoAnswerModalText]=useState(null);
+	
+	const [modalText, setModalText] = useState(null);
+	const [noAnswerModalText, setNoAnswerModalText] = useState(null);
 	const [questionToSet, setQuestionToSet] = useState({
 		question: "",
 		description: "",
@@ -51,9 +50,9 @@ export default function NewQuestion() {
 
 			.then((response) => {
 				response.json();
-				if(response.statusText=="OK"){
+				if (response.statusText == "OK") {
 					setModalText("submitted successfully");
-				} else{
+				} else {
 					setModalText(`something went wrong error code ${response.statusText} `);
 				}
 			});
@@ -66,7 +65,7 @@ export default function NewQuestion() {
 	};
 	const tagHandler = (event) => {
 		const tempTags = event.target.value.split(",");
-		const lowerTags = tempTags.map((tag)=>tag.toLowerCase().trim());
+		const lowerTags = tempTags.map((tag) => tag.toLowerCase().trim());
 		setQuestionToSet({
 			...questionToSet,
 			tags: lowerTags,
@@ -82,29 +81,29 @@ export default function NewQuestion() {
 			},
 		});
 	};
-	const refreshPage=()=>{
+	const refreshPage = () => {
 		location.reload();
 	};
 	const submitHandler = (e) => {
 		e.preventDefault();
-		if(questionToSet.answers.answer_a===""
-		&&questionToSet.answers.answer_b===""
-		&&questionToSet.answers.answer_c===""
-		&&questionToSet.answers.answer_d===""
-		&&questionToSet.answers.answer_e===""
-		&&questionToSet.answers.answer_f===""
+		if (questionToSet.answers.answer_a === ""
+			&& questionToSet.answers.answer_b === ""
+			&& questionToSet.answers.answer_c === ""
+			&& questionToSet.answers.answer_d === ""
+			&& questionToSet.answers.answer_e === ""
+			&& questionToSet.answers.answer_f === ""
 		) {
 			setNoAnswerModalText("write down some answers");
-		} else if(
-			questionToSet.correct_answers.answer_a_correct===false
-			&&questionToSet.correct_answers.answer_b_correct===false
-			&&questionToSet.correct_answers.answer_c_correct===false
-			&&questionToSet.correct_answers.answer_d_correct===false
-			&&questionToSet.correct_answers.answer_e_correct===false
-			&&questionToSet.correct_answers.answer_f_correct===false
-		){
+		} else if (
+			questionToSet.correct_answers.answer_a_correct === false
+			&& questionToSet.correct_answers.answer_b_correct === false
+			&& questionToSet.correct_answers.answer_c_correct === false
+			&& questionToSet.correct_answers.answer_d_correct === false
+			&& questionToSet.correct_answers.answer_e_correct === false
+			&& questionToSet.correct_answers.answer_f_correct === false
+		) {
 			setNoAnswerModalText("check the boxes near correct answers");
-		} else{
+		} else {
 			submitionProcess();
 		}
 
@@ -126,11 +125,11 @@ export default function NewQuestion() {
 
 	return (
 		<div >
-    			<Navbar mentors="Mentors" results="Results" newquestion="New Question" />
+			<Navbar mentors="Mentors" results="Results" newquestion="New Question" />
 			<div className="row formPage margin-body">
 				<form className="survey-form col-8" id="newQuestionForm" onSubmit={submitHandler} >
 					<textarea onKeyUp={codeHandler} className="text-area" placeholder="Code illustration" />
-					<textarea onKeyUp={questionHandler} className="text-area"  required placeholder="Question text use markdown" />
+					<textarea onKeyUp={questionHandler} className="text-area" required placeholder="Question text use markdown" />
 
 					<div className="formLeftAlign">
 						<FormGroup className="form-element">
@@ -223,10 +222,10 @@ export default function NewQuestion() {
 						</FormGroup>
 
 					</div>
-					<button  className="btn btn-secondary" > Submit question</button>
+					<button className="btn btn-secondary" > Submit question</button>
 				</form>
-				{modalText?<Modal modalText={modalText} setModalText={setModalText} func={refreshPage} close={false} />:null}
-				{noAnswerModalText?<Modal modalText={noAnswerModalText} setModalText={setNoAnswerModalText}  close={true} />:null}
+				{modalText ? <Modal modalText={modalText} setModalText={setModalText} func={refreshPage} close={false} /> : null}
+				{noAnswerModalText ? <Modal modalText={noAnswerModalText} setModalText={setNoAnswerModalText} close={true} /> : null}
 
 			</div></div>
 	);
